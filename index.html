@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S1KX.exe — Developer & Security Specialist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#06090a;
+    --bg-alt:#0a1110;
+    --panel:#0c1413;
+    --line:#1b2826;
+    --line-bright:#27403b;
+    --green:#39ff8f;
+    --green-soft:#1f8a52;
+    --cyan:#5be9d6;
+    --text:#dbe9e2;
+    --text-dim:#7c948c;
+    --text-faint:#4a5e58;
+    --mono:'JetBrains Mono', monospace;
+    --display:'Space Grotesk', sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    line-height:1.7;
+    overflow-x:hidden;
+    font-size:16px;
+  }
+
+  /* ===== AMBIENT BACKGROUND LAYERS ===== */
+  .scanlines{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(57,255,143,0.018) 0px, rgba(57,255,143,0.018) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:overlay;
+  }
+  .grid-glow{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(57,255,143,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,143,0.05) 1px, transparent 1px);
+    background-size:48px 48px;
+    -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 0%, #000 0%, transparent 70%);
+    mask-image:radial-gradient(ellipse 60% 50% at 50% 0%, #000 0%, transparent 70%);
+    opacity:0.6;
+  }
+
+  /* code rain canvas */
+  #codeRain{
+    position:fixed; inset:0; z-index:0;
+    opacity:0.16;
+    pointer-events:none;
+  }
+
+  /* ===== NAV ===== */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(6,9,10,0.8);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    padding:18px 6%;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .logo{
+    font-family:var(--display); font-weight:800; font-size:1.15rem;
+    color:var(--text); letter-spacing:0.5px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo-bracket{color:var(--green);}
+  .logo-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 12px var(--green);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.8);}}
+
+  .nav-links{display:flex; gap:32px; list-style:none;}
+  .nav-links a{
+    color:var(--text-dim); text-decoration:none; font-size:0.82rem;
+    letter-spacing:1px; text-transform:uppercase; font-weight:500;
+    transition:color 0.2s; position:relative; padding-bottom:4px;
+  }
+  .nav-links a::after{
+    content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+    background:var(--green); transform:scaleX(0); transition:transform 0.25s ease;
+  }
+  .nav-links a:hover{color:var(--green);}
+  .nav-links a:hover::after{transform:scaleX(1);}
+
+  /* ===== HERO ===== */
+  .hero{
+    min-height:100vh; display:flex; align-items:center;
+    padding:130px 6% 60px; position:relative; z-index:2;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:60px;
+    max-width:1200px; margin:0 auto; width:100%; align-items:center;
+  }
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr;}}
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:0.78rem; letter-spacing:2px; text-transform:uppercase;
+    color:var(--green); margin-bottom:24px; font-weight:700;
+    border:1px solid var(--line-bright); border-radius:30px;
+    padding:7px 16px; background:rgba(57,255,143,0.04);
+  }
+  .eyebrow .led{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green);}
+
+  .hero h1{
+    font-family:var(--display); font-weight:800;
+    font-size:clamp(2.6rem, 6.5vw, 4.6rem);
+    line-height:1.05; letter-spacing:-1px;
+    margin-bottom:20px;
+  }
+  .hero h1 .accent{
+    color:var(--green);
+    text-shadow:0 0 30px rgba(57,255,143,0.35);
+  }
+  .hero h1 .ext{color:var(--text-faint); font-weight:600;}
+
+  .hero-sub{
+    font-size:clamp(1.05rem, 2vw, 1.3rem);
+    color:var(--cyan); font-weight:500; margin-bottom:22px;
+  }
+  .hero-sub .sep{color:var(--text-faint); margin:0 8px;}
+
+  .hero-desc{
+    color:var(--text-dim); max-width:520px; font-size:0.96rem; margin-bottom:34px;
+  }
+
+  .hero-cta{display:flex; gap:16px; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--mono); font-size:0.85rem; font-weight:700;
+    padding:14px 28px; border-radius:6px; text-decoration:none;
+    transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    border:1px solid transparent; display:inline-flex; align-items:center; gap:10px;
+    letter-spacing:0.5px;
+  }
+  .btn-primary{
+    background:var(--green); color:#04140c;
+  }
+  .btn-primary:hover{transform:translateY(-3px); box-shadow:0 10px 30px rgba(57,255,143,0.3);}
+  .btn-ghost{border-color:var(--line-bright); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--green); color:var(--green); transform:translateY(-3px);}
+
+  /* ===== HERO VISUAL: TERMINAL ===== */
+  .terminal{
+    background:var(--panel);
+    border:1px solid var(--line-bright);
+    border-radius:10px;
+    box-shadow:0 0 0 1px rgba(57,255,143,0.04), 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(57,255,143,0.05);
+    overflow:hidden;
+    transform:perspective(1000px) rotateY(-3deg) rotateX(1deg);
+  }
+  @media(max-width:900px){.terminal{transform:none;}}
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 16px; background:#0a1413; border-bottom:1px solid var(--line);
+  }
+  .dot{width:11px; height:11px; border-radius:50%;}
+  .dot.r{background:#ff5f56;} .dot.y{background:#ffbd2e;} .dot.g{background:#27c93f;}
+  .terminal-title{
+    margin-left:auto; margin-right:auto; transform:translateX(-30px);
+    color:var(--text-dim); font-size:0.75rem; letter-spacing:1px;
+  }
+  .terminal-body{padding:24px 22px; font-size:0.84rem; min-height:280px;}
+  .term-line{margin-bottom:10px; color:var(--text-dim);}
+  .term-line .p{color:var(--green);}
+  .term-line .path{color:var(--cyan);}
+  .term-line .out{color:var(--text);}
+  .term-line .ok{color:var(--green);}
+  .term-line .num{color:var(--cyan);}
+  .blinker{
+    display:inline-block; width:8px; height:1em; background:var(--green);
+    vertical-align:text-bottom; animation:blink 1s steps(1) infinite; margin-left:2px;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ===== SECTIONS ===== */
+  section{position:relative; z-index:2; padding:100px 6%; max-width:1200px; margin:0 auto;}
+  .section-head{margin-bottom:56px; max-width:680px;}
+  .tag-label{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.75rem; letter-spacing:3px; text-transform:uppercase;
+    color:var(--green); margin-bottom:14px; font-weight:700;
+  }
+  .tag-label::before{content:''; width:24px; height:1px; background:var(--green);}
+  .section-title{
+    font-family:var(--display); font-size:clamp(1.8rem, 4.5vw, 2.8rem);
+    font-weight:800; letter-spacing:-0.5px;
+  }
+  .section-desc{color:var(--text-dim); margin-top:14px; font-size:0.95rem;}
+
+  /* ===== ABOUT ===== */
+  .about-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:60px; align-items:start;}
+  @media(max-width:850px){.about-grid{grid-template-columns:1fr; gap:44px;}}
+
+  .about-text p{color:var(--text-dim); margin-bottom:18px; font-size:0.96rem;}
+  .about-text strong{color:var(--text); font-weight:700;}
+  .hl{color:var(--green);}
+  .hl2{color:var(--cyan);}
+
+  .stat-row{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:36px;
+  }
+  @media(max-width:500px){.stat-row{grid-template-columns:1fr;}}
+  .stat{
+    border:1px solid var(--line); border-radius:8px; padding:18px;
+    background:var(--panel);
+  }
+  .stat .num{
+    font-family:var(--display); font-size:1.8rem; font-weight:800; color:var(--green);
+    display:block;
+  }
+  .stat .label{font-size:0.75rem; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-top:4px;}
+
+  /* SKILLS PANEL */
+  .skills-panel{
+    background:var(--panel); border:1px solid var(--line-bright);
+    border-radius:10px; padding:0; overflow:hidden;
+  }
+  .skills-panel-header{
+    padding:16px 22px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:8px; font-size:0.78rem; color:var(--text-dim);
+    background:#0a1413;
+  }
+  .skill-item{
+    padding:18px 22px; border-bottom:1px solid var(--line);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .skill-item:last-child{border-bottom:none;}
+  .skill-item-top{display:flex; justify-content:space-between; align-items:center;}
+  .skill-name{font-size:0.92rem; color:var(--text); font-weight:600;}
+  .skill-level{font-size:0.7rem; color:var(--text-dim); letter-spacing:1px;}
+  .bar-track{height:5px; background:var(--line); border-radius:3px; overflow:hidden;}
+  .bar-fill{height:100%; background:linear-gradient(90deg, var(--green-soft), var(--green)); border-radius:3px;}
+
+  /* ===== PROJECTS ===== */
+  .projects-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:24px;}
+  .project-card{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:0; overflow:hidden;
+    transition:border-color 0.25s ease, transform 0.25s ease;
+    display:flex; flex-direction:column;
+  }
+  .project-card:hover{border-color:var(--green-soft); transform:translateY(-5px);}
+  .project-visual{
+    height:140px; position:relative; overflow:hidden;
+    background:
+      linear-gradient(135deg, #0c1816 0%, #081210 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .project-visual::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(57,255,143,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,143,0.08) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  .project-visual .glyphs{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:2.4rem; font-weight:800; color:var(--green); opacity:0.18;
+    font-family:var(--display); letter-spacing:2px;
+  }
+  .project-body{padding:22px; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .project-status{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:0.7rem; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--green); font-weight:700;
+  }
+  .project-status .led{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green);}
+  .project-card h3{font-family:var(--display); font-size:1.2rem; font-weight:700;}
+  .project-card p{color:var(--text-dim); font-size:0.88rem; flex:1;}
+  .project-stack{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
+  .stack-chip{
+    font-size:0.7rem; color:var(--cyan); border:1px solid var(--line-bright);
+    border-radius:4px; padding:3px 9px; letter-spacing:0.5px;
+  }
+
+  /* ===== CONTACT ===== */
+  .contact-wrap{
+    background:var(--panel); border:1px solid var(--line-bright);
+    border-radius:14px; padding:clamp(36px, 8vw, 70px);
+    text-align:center; position:relative; overflow:hidden;
+  }
+  .contact-wrap::before{
+    content:''; position:absolute; top:-50%; left:50%; transform:translateX(-50%);
+    width:600px; height:600px; border-radius:50%;
+    background:radial-gradient(circle, rgba(57,255,143,0.08) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .contact-title{
+    font-family:var(--display); font-size:clamp(1.8rem, 5vw, 3rem);
+    font-weight:800; margin:18px 0 16px; letter-spacing:-1px; position:relative;
+  }
+  .contact-desc{color:var(--text-dim); max-width:480px; margin:0 auto 32px; font-size:0.95rem; position:relative;}
+  .contact-email{
+    display:inline-flex; align-items:center; gap:12px;
+    font-size:clamp(0.95rem, 2.6vw, 1.25rem); color:var(--green);
+    text-decoration:none; border:1px solid var(--line-bright);
+    padding:16px 32px; border-radius:8px; transition:all 0.25s ease;
+    word-break:break-all; position:relative; font-weight:600;
+  }
+  .contact-email:hover{
+    border-color:var(--green); box-shadow:0 0 30px rgba(57,255,143,0.2);
+    background:rgba(57,255,143,0.05); transform:translateY(-2px);
+  }
+  .contact-meta{
+    margin-top:28px; display:flex; justify-content:center; gap:32px;
+    flex-wrap:wrap; color:var(--text-dim); font-size:0.8rem; position:relative;
+  }
+  .contact-meta span strong{color:var(--text);}
+
+  /* ===== FOOTER ===== */
+  footer{
+    position:relative; z-index:2; text-align:center; padding:36px 6% 50px;
+    color:var(--text-faint); font-size:0.8rem; border-top:1px solid var(--line);
+  }
+  footer .accent{color:var(--green-soft);}
+
+  /* ===== REVEAL ===== */
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease;}
+  .reveal.visible{opacity:1; transform:translateY(0);}
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+    .blinker, .eyebrow .led, .logo-dot{animation:none;}
+  }
+
+  a:focus-visible, button:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+</style>
+</head>
+<body>
+
+<canvas id="codeRain"></canvas>
+<div class="grid-glow"></div>
+<div class="scanlines"></div>
+
+<nav>
+  <div class="logo"><span class="logo-bracket">&lt;</span>S1KX.exe<span class="logo-bracket">/&gt;</span><span class="logo-dot"></span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow"><span class="led"></span> Available for projects</div>
+      <h1>Building secure systems with<br><span class="accent">precision</span> &amp; code<span class="ext">.</span></h1>
+      <p class="hero-sub">Web Developer <span class="sep">/</span> Editor <span class="sep">/</span> Ethical Hacker</p>
+      <p class="hero-desc">
+        I design, build, and secure digital systems — from full web applications to creative
+        media projects, with a security-first mindset behind every line of code.
+      </p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn btn-primary">View Work →</a>
+        <a href="#contact" class="btn btn-ghost">Get in Touch</a>
+      </div>
+    </div>
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="terminal-title">root@s1kx: ~/portfolio</span>
+      </div>
+      <div class="terminal-body">
+        <div class="term-line"><span class="p">$</span> whoami</div>
+        <div class="term-line out">S1KX.exe — Developer &amp; Security Specialist</div>
+        <div class="term-line"><span class="p">$</span> scan --target self --modules</div>
+        <div class="term-line out">[<span class="ok">OK</span>] web-development ............ loaded</div>
+        <div class="term-line out">[<span class="ok">OK</span>] video-editing ............... loaded</div>
+        <div class="term-line out">[<span class="ok">OK</span>] ethical-hacking ............. loaded</div>
+        <div class="term-line"><span class="p">$</span> status --uptime</div>
+        <div class="term-line out">Active sessions: <span class="num">3</span> | Threat level: <span class="ok">secure</span></div>
+        <div class="term-line"><span class="p">$</span> echo "ready for new projects"</div>
+        <div class="term-line out">ready for new projects<span class="blinker"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-head reveal">
+    <div class="tag-label">Profile</div>
+    <h2 class="section-title">About Me</h2>
+    <p class="section-desc">A multidisciplinary technologist blending development, creative editing, and security expertise.</p>
+  </div>
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>
+        I'm <strong>S1KX.exe</strong> — a <span class="hl">web developer</span>, <span class="hl2">editor</span>,
+        and <span class="hl">ethical hacker</span>. I work across the full stack of digital craft: writing
+        clean, efficient code, producing polished visual content, and testing systems for
+        vulnerabilities before attackers ever find them.
+      </p>
+      <p>
+        My approach is built on one principle: <strong>everything should be functional, secure,
+        and intentional.</strong> Whether I'm shipping a website, editing a video, or running a
+        penetration test, the same standard of precision applies.
+      </p>
+      <p>
+        I'm constantly exploring new tools, frameworks, and attack/defense techniques —
+        treating every project as a chance to push my skills further.
+      </p>
+      <div class="stat-row">
+        <div class="stat"><span class="num">4+</span><span class="label">Core Disciplines</span></div>
+        <div class="stat"><span class="num">100%</span><span class="label">Security Focused</span></div>
+        <div class="stat"><span class="num">24/7</span><span class="label">Problem Solving</span></div>
+      </div>
+    </div>
+    <div class="skills-panel reveal" id="skills">
+      <div class="skills-panel-header"><span style="color:var(--green)">$</span> skills --verbose</div>
+      <div class="skill-item">
+        <div class="skill-item-top"><span class="skill-name">Web Development</span><span class="skill-level">EXPERT</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-item-top"><span class="skill-name">Coding</span><span class="skill-level">EXPERT</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-item-top"><span class="skill-name">Video & Content Editing</span><span class="skill-level">ADVANCED</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:85%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-item-top"><span class="skill-name">Ethical Hacking</span><span class="skill-level">ADVANCED</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="section-head reveal">
+    <div class="tag-label">Portfolio</div>
+    <h2 class="section-title">Selected Work</h2>
+    <p class="section-desc">A snapshot of projects in progress. Each one will be updated with full details, links, and case studies.</p>
+  </div>
+  <div class="projects-grid">
+    <div class="project-card reveal">
+      <div class="project-visual"><div class="glyphs">01</div></div>
+      <div class="project-body">
+        <span class="project-status"><span class="led"></span> In Development</span>
+        <h3>Project Alpha</h3>
+        <p>A web application build showcasing modern front-end architecture and clean UI engineering. Details coming soon.</p>
+        <div class="project-stack">
+          <span class="stack-chip">HTML</span>
+          <span class="stack-chip">CSS</span>
+          <span class="stack-chip">JavaScript</span>
+        </div>
+      </div>
+    </div>
+    <div class="project-card reveal">
+      <div class="project-visual"><div class="glyphs">02</div></div>
+      <div class="project-body">
+        <span class="project-status"><span class="led"></span> In Development</span>
+        <h3>Project Bravo</h3>
+        <p>A security-focused build demonstrating vulnerability assessment and hardening techniques. Case study coming soon.</p>
+        <div class="project-stack">
+          <span class="stack-chip">Security</span>
+          <span class="stack-chip">Networking</span>
+        </div>
+      </div>
+    </div>
+    <div class="project-card reveal">
+      <div class="project-visual"><div class="glyphs">03</div></div>
+      <div class="project-body">
+        <span class="project-status"><span class="led"></span> In Development</span>
+        <h3>Project Charlie</h3>
+        <p>A creative media project highlighting editing workflows and visual storytelling. Showcase coming soon.</p>
+        <div class="project-stack">
+          <span class="stack-chip">Editing</span>
+          <span class="stack-chip">Design</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="contact-wrap reveal">
+    <div class="tag-label" style="justify-content:center; display:flex;">Get in Touch</div>
+    <h2 class="contact-title">Let's build something secure.</h2>
+    <p class="contact-desc">Open to development, editing, and security-related projects. Reach out and let's discuss your idea.</p>
+    <a href="mailto:sjaank606@gmail.com" class="contact-email">
+      <span>✉</span> sjaank606@gmail.com
+    </a>
+    <div class="contact-meta">
+      <span><strong>Response time:</strong> within 24 hours</span>
+      <span><strong>Status:</strong> Open to work</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="accent">$</span> © 2026 S1KX.exe — All rights reserved.
+</footer>
+
+<script>
+  // Matrix-style code rain background
+  const canvas = document.getElementById('codeRain');
+  const ctx = canvas.getContext('2d');
+  let w, h, columns, drops;
+  const chars = '01<>/{}[]#$%&S1KX';
+
+  function setup(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    columns = Math.floor(w / 18);
+    drops = Array.from({length: columns}, () => Math.floor(Math.random() * h / 18));
+  }
+  setup();
+  window.addEventListener('resize', setup);
+
+  function draw(){
+    ctx.fillStyle = 'rgba(6,9,10,0.06)';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = '#39ff8f';
+    ctx.font = '14px monospace';
+    for(let i=0;i<drops.length;i++){
+      const text = chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillText(text, i*18, drops[i]*18);
+      if(drops[i]*18 > h && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+
+  let rainInterval;
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    rainInterval = setInterval(draw, 60);
+  }
+
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.12});
+  revealEls.forEach(el=>observer.observe(el));
+</script>
+
+</body>
+</html>
